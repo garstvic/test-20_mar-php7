@@ -25,3 +25,4 @@ Route::get('house/{id}', 'HouseController@show');
 
 // List of founded houses
 Route::get('search', 'HouseController@search');
+Route::post('search', 'HouseController@search');

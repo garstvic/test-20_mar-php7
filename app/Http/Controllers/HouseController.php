@@ -9,7 +9,7 @@ use App\Http\Resources\House as HouseResource;
 
 class HouseController extends Controller
 {
-    const PAGINATE = 25;
+    const PAGINATE = 5;
     
     /**
      * Display a listing of the resource.
@@ -19,7 +19,7 @@ class HouseController extends Controller
     public function index()
     {
         // Get houses
-        $houses = House::paginate(self::PAGINATE);
+        $houses = House::orderBy('created_at', 'desc')->paginate(self::PAGINATE);
         
         // Return collection of houses
         
@@ -49,46 +49,48 @@ class HouseController extends Controller
         $house = new House();
         $query = $house->newQuery();
 
-        if ($request->has('name'))
+        if ($name = $request->input('name'))
         {
-            $query->where('name', 'like', "%{$request->input('name')}%");
+            $query->where('name', 'like', "%{$name}%");
         }
 
-        if ($request->has('bathrooms'))
+        if ($bathrooms = $request->input('bathrooms'))
         {
-            $query->where('bathrooms', $request->input('bathrooms'));
+            $query->where('bathrooms', $bathrooms);
         }
 
-        if ($request->has('bedrooms'))
+        if ($bedrooms = $request->input('bedrooms'))
         {
-            $query->where('bedrooms', $request->input('bedrooms'));
+            $query->where('bedrooms', $bedrooms);
         }
 
-        if ($request->has('storeys'))
+        if ($storeys = $request->input('storeys'))
         {
-            $query->where('storeys', $request->input('storeys'));
+            $query->where('storeys', $storeys);
         }
 
-        if ($request->has('garages'))
+        if ($garages = $request->input('garages'))
         {
-            $query->where('garages', $request->input('garages'));
+            $query->where('garages', $garages);
+        }
+        
+        $priceStart = $request->input('price_start');
+        $priceEnd = $request->input('price_end');
+        if ($priceStart && $priceEnd)
+        {
+            $query->whereBetween('price', [$priceStart, $priceEnd]);
         }
 
-        if ($request->has('price_start') && $request->has('price_end'))
+        if ($priceStart && !$priceEnd)
         {
-            $query->whereBetween('price', [$request->input('price_start'), $request->input('price_end')]);
+            $query->where('price', '>', $priceStart);
         }
 
-        if ($request->has('price_start') && !$request->has('price_end'))
+        if (!$priceStart && $priceEnd)
         {
-            $query->where('price', '>', $request->input('price_start'));
+            $query->where('price', '<', $priceEnd);
         }
-
-        if (!$request->has('price_start') && $request->has('price_end'))
-        {
-            $query->where('price', '<', $request->input('price_end'));
-        }
-
-        return HouseResource::collection($query->get());
+        
+        return HouseResource::collection($query->paginate(self::PAGINATE));
     }
 }
