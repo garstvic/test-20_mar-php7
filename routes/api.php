@@ -16,3 +16,12 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// List of houses
+Route::get('houses', 'HouseController@index');
+
+// List of single house
+Route::get('house/{id}', 'HouseController@show');
+
+// List of founded houses
+Route::get('search', 'HouseController@search');
