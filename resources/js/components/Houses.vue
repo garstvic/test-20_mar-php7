@@ -39,6 +39,8 @@
                 <li v-bind:class="[{disabled: !pagination.next_page_url}]" class="page-item"><a class="page-link" href="#" @click="fetchHouses(pagination.next_page_url)">Next</a></li>
             </ul>
         </nav>
+        <vue-simple-spinner size="medium" v-if="loading"/>
+        <div v-if="!houses.length && !loading" class="card card-body mb-2" >No item found</div>
         <div v-for="house in houses" v-bind:key="house.id" class="card card-body mb-2">
             <h3>{{ house.name }}</h3>
             <div class="container">
@@ -55,6 +57,8 @@
 </template>
 
 <script>
+    import Spinner from 'vue-simple-spinner'
+    
     export default {
         data() {
             return {
@@ -68,7 +72,8 @@
                    bedrooms: '',
                    bathrooms: '',
                    storeys: '',
-                   garages: ''
+                   garages: '',
+                   loading: ''
                 },
                 house_id: '',
                 pagination: {}
@@ -77,17 +82,20 @@
         
         created() {
             this.fetchHouses();
+            this.loading = true;
         },
         
         methods: {
             fetchHouses(page_url) {
+                this.loading = true;
                 let vm = this;
                 page_url = page_url || '/api/houses'
                 fetch(page_url)
                     .then(res => res.json())
                     .then(res => {
                         this.houses = res.data;      
-                        vm.makePagination(res.meta, res.links)
+                        vm.makePagination(res.meta, res.links);
+                        this.loading = false;
                     })
                     .catch(err => console.log(err));
             },
@@ -102,6 +110,7 @@
                 this.pagination = pagination;
             },
             applyFilter() {
+                this.loading = true;
                 let vm = this;
                 fetch('/api/search', {
                     method: 'post',
@@ -113,10 +122,14 @@
                 .then(res => res.json())
                 .then(res => {
                     this.houses = res.data;
-                    vm.makePagination(res.meta, res.links)
+                    vm.makePagination(res.meta, res.links);
+                    this.loading = false;
                 })
                 .catch(err => console.log(err));
             }
+        },
+        components: {
+            Spinner
         }
     }
 </script>
